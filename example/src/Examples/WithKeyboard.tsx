@@ -13,7 +13,6 @@ import {
   useEditorBridge,
   ColorKeyboard,
   CustomKeyboard,
-  DEFAULT_TOOLBAR_ITEMS,
   useKeyboard,
   type EditorBridge,
   useBridgeState,
@@ -22,6 +21,11 @@ import {
 } from '@10play/tentap-editor';
 import { Images } from '../../../src/assets';
 import { customFont } from './font';
+import { TOOLBAR_SECTIONS } from '../../../src/RichText/Toolbar/actions';
+import type {
+  ToolbarItem,
+  ToolbarSection,
+} from '../../../src/RichText/Toolbar/ToolbarTypes';
 
 export const WithKeyboard = ({}: NativeStackScreenProps<any, any, any>) => {
   const editor = useEditorBridge({
@@ -92,24 +96,28 @@ const ToolbarWithColor = ({
   const hideToolbar =
     !isKeyboardUp || (!editorState.isFocused && !customKeyboardOpen);
 
+  // Define the custom color keyboard item
+  const colorKeyboardItem: ToolbarItem = {
+    onPress: () => () => {
+      const isActive = activeKeyboard === ColorKeyboard.id;
+      if (isActive) editor.focus();
+      setActiveKeyboard(isActive ? undefined : ColorKeyboard.id);
+    },
+    active: () => activeKeyboard === ColorKeyboard.id,
+    disabled: () => false,
+    image: () => Images.palette,
+  };
+
+  // Create custom toolbar section with our custom color item
+  const customSections: Record<string, ToolbarSection> = {
+    colorKeyboard: {
+      items: [colorKeyboardItem],
+    },
+    ...TOOLBAR_SECTIONS,
+  };
+
   return (
-    <Toolbar
-      editor={editor}
-      hidden={hideToolbar}
-      items={[
-        {
-          onPress: () => () => {
-            const isActive = activeKeyboard === ColorKeyboard.id;
-            if (isActive) editor.focus();
-            setActiveKeyboard(isActive ? undefined : ColorKeyboard.id);
-          },
-          active: () => activeKeyboard === ColorKeyboard.id,
-          disabled: () => false,
-          image: () => Images.palette,
-        },
-        ...DEFAULT_TOOLBAR_ITEMS,
-      ]}
-    />
+    <Toolbar editor={editor} hidden={hideToolbar} sections={customSections} />
   );
 };
 
@@ -124,4 +132,4 @@ const exampleStyles = StyleSheet.create({
   },
 });
 
-const initialContent = `<p>This is a basic <a href="https://google.com">example</a> of using ColorKeyboard </p><img src="https://source.unsplash.com/8xznAGy4HcY/800x400" /><p></p>`;
+const initialContent = `<p>This is a basic <a href="https://google.com">example</a> of using ColorKeyboard </p><img src="https://www.shutterstock.com/image-vector/touch-typing-scheme-isolated-vector-600nw-357707423.jpg" /><p></p>`;

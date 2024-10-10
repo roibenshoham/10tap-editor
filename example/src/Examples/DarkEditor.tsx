@@ -13,7 +13,6 @@ import {
   useEditorBridge,
   ColorKeyboard,
   CustomKeyboard,
-  DEFAULT_TOOLBAR_ITEMS,
   useKeyboard,
   type EditorBridge,
   useBridgeState,
@@ -23,6 +22,11 @@ import {
   darkEditorCss,
 } from '@10play/tentap-editor';
 import { Images } from '../../../src/assets';
+import { TOOLBAR_SECTIONS } from '../../../src/RichText/Toolbar/actions';
+import type {
+  ToolbarItem,
+  ToolbarSection,
+} from '../../../src/RichText/Toolbar/ToolbarTypes';
 
 const EDITOR_BACKGROUND_COLOR = '#1C1C1E';
 
@@ -84,6 +88,7 @@ interface ToolbarWithColorProps {
   activeKeyboard: string | undefined;
   setActiveKeyboard: (id: string | undefined) => void;
 }
+
 const ToolbarWithColor = ({
   editor,
   activeKeyboard,
@@ -100,24 +105,28 @@ const ToolbarWithColor = ({
   const hideToolbar =
     !isKeyboardUp || (!editorState.isFocused && !customKeyboardOpen);
 
+  // Define the custom color keyboard item
+  const colorKeyboardItem: ToolbarItem = {
+    onPress: () => () => {
+      const isActive = activeKeyboard === ColorKeyboard.id;
+      if (isActive) editor.focus();
+      setActiveKeyboard(isActive ? undefined : ColorKeyboard.id);
+    },
+    active: () => activeKeyboard === ColorKeyboard.id,
+    disabled: () => false,
+    image: () => Images.palette,
+  };
+
+  // Create custom toolbar section with our custom color item
+  const customSections: Record<string, ToolbarSection> = {
+    colorKeyboard: {
+      items: [colorKeyboardItem],
+    },
+    ...TOOLBAR_SECTIONS,
+  };
+
   return (
-    <Toolbar
-      editor={editor}
-      hidden={hideToolbar}
-      items={[
-        {
-          onPress: () => () => {
-            const isActive = activeKeyboard === ColorKeyboard.id;
-            if (isActive) editor.focus();
-            setActiveKeyboard(isActive ? undefined : ColorKeyboard.id);
-          },
-          active: () => activeKeyboard === ColorKeyboard.id,
-          disabled: () => false,
-          image: () => Images.palette,
-        },
-        ...DEFAULT_TOOLBAR_ITEMS,
-      ]}
-    />
+    <Toolbar editor={editor} hidden={hideToolbar} sections={customSections} />
   );
 };
 
@@ -132,4 +141,4 @@ const exampleStyles = StyleSheet.create({
   },
 });
 
-const initialContent = `<p>darl</p>`;
+const initialContent = `<p>dark</p>`;

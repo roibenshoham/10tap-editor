@@ -23,6 +23,11 @@ import {
   Images,
 } from '@10play/tentap-editor';
 import { CustomKeyboard } from '../../../src/RichText/Keyboard/CustomKeyboardBase';
+import { TOOLBAR_SECTIONS } from '../../../src/RichText/Toolbar/actions';
+import type {
+  ToolbarItem,
+  ToolbarSection,
+} from '../../../src/RichText/Toolbar/ToolbarTypes';
 
 const keyboardStyles = StyleSheet.create({
   keyboardContainer: {
@@ -145,6 +150,7 @@ interface ToolbarWithColorProps {
   activeKeyboard: string | undefined;
   setActiveKeyboard: (id: string | undefined) => void;
 }
+
 const StickerToolbar = ({
   editor,
   activeKeyboard,
@@ -161,22 +167,27 @@ const StickerToolbar = ({
   const hideToolbar =
     !isKeyboardUp || (!editorState.isFocused && !customKeyboardOpen);
 
+  // Define the custom sticker keyboard item
+  const stickerKeyboardItem: ToolbarItem = {
+    onPress: () => () => {
+      const isActive = activeKeyboard === StickerKeyboard.id;
+      if (isActive) editor.webviewRef.current?.requestFocus();
+      setActiveKeyboard(isActive ? undefined : StickerKeyboard.id);
+    },
+    active: () => activeKeyboard === StickerKeyboard.id,
+    disabled: () => false,
+    image: () => Images.palette,
+  };
+
+  // Create custom toolbar section with our custom sticker item
+  const customSections: Record<string, ToolbarSection> = {
+    stickerKeyboard: {
+      items: [stickerKeyboardItem],
+    },
+    ...TOOLBAR_SECTIONS,
+  };
+
   return (
-    <Toolbar
-      editor={editor}
-      hidden={hideToolbar}
-      items={[
-        {
-          onPress: () => () => {
-            const isActive = activeKeyboard === StickerKeyboard.id;
-            if (isActive) editor.webviewRef.current?.requestFocus();
-            setActiveKeyboard(isActive ? undefined : StickerKeyboard.id);
-          },
-          active: () => activeKeyboard === StickerKeyboard.id,
-          disabled: () => false,
-          image: () => Images.palette,
-        },
-      ]}
-    />
+    <Toolbar editor={editor} hidden={hideToolbar} sections={customSections} />
   );
 };
